@@ -35,7 +35,7 @@ class _AppShellState extends State<AppShell> {
     final scheme = Theme.of(context).colorScheme;
 
     // Left panel width = 1/3 of screen
-    final leftWidth = screenWidth / 3;
+    final leftWidth = screenWidth / 5;
 
     return Directionality(
       textDirection: TextDirection.rtl,
