@@ -50,6 +50,12 @@
       "languageVersion": "3.5"
     },
     {
+      "name": "flutter_localizations",
+      "rootUri": "file:///home/saman/development/flutter/packages/flutter_localizations",
+      "packageUri": "lib/",
+      "languageVersion": "3.8"
+    },
+    {
       "name": "flutter_test",
       "rootUri": "file:///home/saman/development/flutter/packages/flutter_test",
       "packageUri": "lib/",
@@ -72,6 +78,12 @@
       "rootUri": "file:///home/saman/.pub-cache/hosted/pub.dev/go_router-16.1.0",
       "packageUri": "lib/",
       "languageVersion": "3.6"
+    },
+    {
+      "name": "intl",
+      "rootUri": "file:///home/saman/.pub-cache/hosted/pub.dev/intl-0.20.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
     },
     {
       "name": "leak_tracker",
@@ -222,12 +234,6 @@
       "rootUri": "file:///home/saman/.pub-cache/hosted/pub.dev/url_launcher_windows-3.1.4",
       "packageUri": "lib/",
       "languageVersion": "3.4"
-    },
-    {
-      "name": "url_strategy",
-      "rootUri": "file:///home/saman/.pub-cache/hosted/pub.dev/url_strategy-0.3.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.15"
     },
     {
       "name": "vector_math",

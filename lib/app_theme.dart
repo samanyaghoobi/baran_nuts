@@ -1,6 +1,3 @@
-// ببین یک تمم رو میخواهم کرمی تر کنی 
-// سیاه سفید باشه 
-// ولی سفیدش کرمی تر خیلی خفیف
 import 'package:flutter/material.dart';
 
 class AppTheme {
@@ -14,7 +11,6 @@ class AppTheme {
       brightness: Brightness.light,
     );
 
-    // Grayscale overrides to keep UI truly black & white (with subtle greys)
     final scheme = base.copyWith(
       primary: Colors.black,
       onPrimary: Colors.white,
@@ -30,8 +26,6 @@ class AppTheme {
       onSurface: Colors.black,
       surfaceTint: Colors.transparent, // remove color cast on surfaces
 
-      background: Colors.white,
-      onBackground: Colors.black,
 
       outline: const Color(0xFFDDDDDD),
       outlineVariant: const Color(0xFFE9E9E9),

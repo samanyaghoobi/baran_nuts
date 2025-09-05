@@ -8,10 +8,11 @@
       "version": "1.0.0",
       "dependencies": [
         "flutter",
+        "flutter_localizations",
         "font_awesome_flutter",
         "go_router",
-        "url_launcher",
-        "url_strategy"
+        "intl",
+        "url_launcher"
       ],
       "devDependencies": [
         "flutter_lints",
@@ -44,10 +45,10 @@
       ]
     },
     {
-      "name": "url_strategy",
-      "version": "0.3.0",
+      "name": "font_awesome_flutter",
+      "version": "10.9.0",
       "dependencies": [
-        "flutter_web_plugins"
+        "flutter"
       ]
     },
     {
@@ -76,10 +77,21 @@
       ]
     },
     {
-      "name": "font_awesome_flutter",
-      "version": "10.9.0",
+      "name": "intl",
+      "version": "0.20.2",
       "dependencies": [
-        "flutter"
+        "clock",
+        "meta",
+        "path"
+      ]
+    },
+    {
+      "name": "flutter_localizations",
+      "version": "0.0.0",
+      "dependencies": [
+        "flutter",
+        "intl",
+        "path"
       ]
     },
     {
@@ -184,13 +196,6 @@
       ]
     },
     {
-      "name": "flutter_web_plugins",
-      "version": "0.0.0",
-      "dependencies": [
-        "flutter"
-      ]
-    },
-    {
       "name": "url_launcher_windows",
       "version": "3.1.4",
       "dependencies": [
@@ -252,6 +257,13 @@
       "name": "logging",
       "version": "1.3.0",
       "dependencies": []
+    },
+    {
+      "name": "flutter_web_plugins",
+      "version": "0.0.0",
+      "dependencies": [
+        "flutter"
+      ]
     },
     {
       "name": "sky_engine",

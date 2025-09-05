@@ -1,0 +1,1 @@
+ /home/saman/code/baran_nuts/lib/l10n/app_localizations_en.dart /home/saman/code/baran_nuts/lib/l10n/app_localizations_fa.dart /home/saman/code/baran_nuts/lib/l10n/app_localizations.dart:  /home/saman/code/baran_nuts/l10n.yaml /home/saman/code/baran_nuts/lib/l10n/app_en.arb /home/saman/code/baran_nuts/lib/l10n/app_fa.arb

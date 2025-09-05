@@ -1,5 +1,7 @@
-import 'package:baran_nuts/side_pandel.dart';
+import 'package:baran_nuts/side_panel.dart';
 import 'package:flutter/material.dart';
+import 'package:baran_nuts/l10n/app_localizations.dart';
+import 'package:baran_nuts/main.dart'; // برای MyApp.of(context)
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.child});
@@ -13,12 +15,12 @@ class _AppShellState extends State<AppShell> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // Breakpoints
-  static const double kBreakpointLarge = 1200; // ≥ large => two columns
+  static const double kBreakpointLarge = 1200;
 
   // Dedicated controllers
-  final ScrollController _drawerCtrl = ScrollController();   // Drawer (small)
-  final ScrollController _leftCtrl   = ScrollController();   // Left panel (large)
-  final ScrollController _bodyCtrl   = ScrollController();   // Center content (small & large)
+  final ScrollController _drawerCtrl = ScrollController(); // Drawer (small)
+  final ScrollController _leftCtrl   = ScrollController(); // Left panel (large)
+  final ScrollController _bodyCtrl   = ScrollController(); // Center content
 
   @override
   void dispose() {
@@ -28,13 +30,19 @@ class _AppShellState extends State<AppShell> {
     super.dispose();
   }
 
+  void _switchLocale(Locale locale) {
+    MyApp.of(context)?.setLocale(locale);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final loc         = AppLocalizations.of(context)!;
     final screenWidth = MediaQuery.of(context).size.width;
-    final isLarge = screenWidth >= kBreakpointLarge;
-    final scheme = Theme.of(context).colorScheme;
+    final isLarge     = screenWidth >= kBreakpointLarge;
+    final scheme      = Theme.of(context).colorScheme;
+    final current     = Localizations.localeOf(context).languageCode; // "fa" | "en"
 
-    // Left panel width = 1/3 of screen
+    // Left panel width
     final leftWidth = screenWidth / 5;
 
     return Directionality(
@@ -43,16 +51,27 @@ class _AppShellState extends State<AppShell> {
         key: _scaffoldKey,
         backgroundColor: scheme.surface,
 
-        appBar: isLarge
-            ? null
-            : AppBar(
-                title: const Text('Baran'),
-                leading: IconButton(
-                  tooltip: 'Menu',
+        // AppBar: همیشه نمایش داده شود؛ در حالت کوچک دکمه‌ی منو دارد
+        appBar: AppBar(
+          title: Text(loc.appTitle),
+          leading: isLarge
+              ? null
+              : IconButton(
+                  tooltip: loc.menuTooltip,
                   icon: const Icon(Icons.menu),
                   onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                 ),
-              ),
+          actions: [
+            // دکمه تغییر زبان
+            _LangSwitcher(
+              currentCode: current,
+              onSelected: (code) {
+                if (code == 'fa') _switchLocale(const Locale('fa'));
+                if (code == 'en') _switchLocale(const Locale('en'));
+              },
+            ),
+          ],
+        ),
 
         drawer: isLarge
             ? null
@@ -78,7 +97,7 @@ class _AppShellState extends State<AppShell> {
 
         body: isLarge
             ? _LargeLayout(
-                leftWidth: leftWidth,  // dynamic instead of constant
+                leftWidth: leftWidth,
                 child: widget.child,
                 leftCtrl: _leftCtrl,
                 bodyCtrl: _bodyCtrl,
@@ -92,7 +111,41 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
-/// Small screen: content scrolls; side panel is in Drawer (above)
+/// دکمه‌ی انتخاب زبان در AppBar
+class _LangSwitcher extends StatelessWidget {
+  const _LangSwitcher({
+    required this.currentCode,
+    required this.onSelected,
+  });
+
+  final String currentCode;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
+    return PopupMenuButton<String>(
+      tooltip: loc.changeLanguage,
+      icon: const Icon(Icons.language),
+      onSelected: onSelected,
+      itemBuilder: (context) => [
+        CheckedPopupMenuItem(
+          value: 'fa',
+          checked: currentCode == 'fa',
+          child: Text(loc.langFa),
+        ),
+        CheckedPopupMenuItem(
+          value: 'en',
+          checked: currentCode == 'en',
+          child: Text(loc.langEn),
+        ),
+      ],
+    );
+  }
+}
+
+/// Small screen: content scrolls; side panel is in Drawer
 class _SmallLayout extends StatelessWidget {
   const _SmallLayout({
     required this.child,
@@ -112,14 +165,13 @@ class _SmallLayout extends StatelessWidget {
           controller: bodyCtrl,
           thumbVisibility: true,
           child: SingleChildScrollView(
-            controller: bodyCtrl, // attach controller
+            controller: bodyCtrl,
             padding: const EdgeInsets.all(16),
             child: ConstrainedBox(
-              // min height = viewport - appbar to avoid short pages
               constraints: BoxConstraints(minHeight: h - kToolbarHeight),
-              child: Directionality( // actual content remains RTL
+              child: Directionality(
                 textDirection: TextDirection.rtl,
-                child: child, // no Align wrapper to avoid overflow with Columns
+                child: child,
               ),
             ),
           ),
@@ -145,14 +197,14 @@ class _LargeLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme  = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    return Directionality( // enforce left-to-right for row order (left panel first)
+    return Directionality( // enforce LTR for row order (left panel first)
       textDirection: TextDirection.ltr,
       child: Row(
         children: [
-          // Left column: combined side panel with its own scroll
+          // Left column: side panel with its own scroll
           SizedBox(
             width: leftWidth,
             child: Card(
@@ -162,12 +214,8 @@ class _LargeLayout extends StatelessWidget {
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.zero,
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: SidePanel(
-                  // non-compact → it manages its own internal scroll
-                  controller: leftCtrl, // attach controller to panel's Scrollbar
-                ),
+              child: SidePanel(
+                controller: leftCtrl,
               ),
             ),
           ),
@@ -175,21 +223,20 @@ class _LargeLayout extends StatelessWidget {
           // Center column: route content with independent scroll
           Expanded(
             child: Directionality(
-              textDirection: TextDirection.ltr, // scrollbar on the right
+              textDirection: TextDirection.ltr,
               child: Scrollbar(
                 controller: bodyCtrl,
                 thumbVisibility: true,
                 child: SingleChildScrollView(
-                  controller: bodyCtrl, // attach controller
+                  controller: bodyCtrl,
                   padding: const EdgeInsets.all(16),
                   child: ConstrainedBox(
-                    // min height = viewport to align with left panel height
                     constraints: BoxConstraints(
                       minHeight: MediaQuery.of(context).size.height,
                     ),
                     child: Directionality(
-                      textDirection: TextDirection.rtl, // actual content RTL
-                      child: child, // no Align wrapper to avoid overflows
+                      textDirection: TextDirection.rtl,
+                      child: child,
                     ),
                   ),
                 ),
