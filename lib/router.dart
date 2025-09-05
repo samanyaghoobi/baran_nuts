@@ -1,7 +1,7 @@
 import 'package:baran_nuts/about_us/about_us.dart';
 import 'package:baran_nuts/app_shell.dart';
 import 'package:baran_nuts/home/home_main_content.dart';
-import 'package:baran_nuts/working_with_us/woorking.dart';
+import 'package:baran_nuts/working_with_us/working.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 

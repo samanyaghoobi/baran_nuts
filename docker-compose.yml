@@ -1,6 +1,7 @@
 # Docker Compose for Flutter Web (Nginx)
 services:
   web:
+    container_name: "baran-nuts-website"
     image: nginx:alpine
     ports:
       - "127.0.0.1:8081:80"
