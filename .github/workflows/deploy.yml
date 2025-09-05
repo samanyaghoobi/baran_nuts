@@ -1,0 +1,124 @@
+name: Deploy Flutter Web to Docker Compose Server
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      pwa_strategy:
+        description: "Flutter PWA strategy (none, offline-first, etc.)"
+        required: false
+        default: "none"
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      # Fallback to secret or manual input for PWA strategy
+      PWA_STRATEGY: ${{ inputs.pwa_strategy || secrets.PWA_STRATEGY || 'none' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Test SSH connection
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "✅ SSH connection successful"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter Pub Get
+        run: flutter pub get
+
+      - name: Build Flutter Web
+        # You can change --pwa-strategy to what you prefer (env PWA_STRATEGY controls it)
+        run: |
+          flutter --version
+          flutter build web --release --pwa-strategy=$PWA_STRATEGY
+          ls -la build/web
+
+      - name: Prepare artifact (web build + nginx.conf + docker-compose.yml)
+        run: |
+          mkdir -p artifact/build
+          cp -r build/web artifact/build/web
+          # copy your nginx and compose files; adjust paths if different in repo
+          cp nginx.conf artifact/nginx.conf
+          # if your compose file is named docker-compose.yml and at repo root:
+          cp docker-compose.yml artifact/docker-compose.yml
+          tar -czf deploy.tar.gz -C artifact .
+
+      - name: Add remote host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Copy artifact to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "deploy.tar.gz"
+          target: "/tmp"
+          debug: true
+
+
+      - name: Deploy on server via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            # Create/ensure target directory
+            mkdir -p "${{ secrets.TARGET_DIR }}"
+
+            # Unpack artifact into target
+            tar -xzf /tmp/deploy.tar.gz -C "${{ secrets.TARGET_DIR }}"
+
+            # Directory structure after unpack:
+            # $TARGET_DIR/
+            #   build/web/...
+            #   nginx.conf
+            #   docker-compose.yml
+
+            cd "${{ secrets.TARGET_DIR }}"
+
+            # Ensure docker & compose plugin are available (optional checks)
+            docker --version
+            docker compose version
+
+            # Pull latest images if any (your compose uses nginx:alpine)
+            docker pull nginx:alpine || true
+
+            # Start/Update the stack (recreate web service)
+            docker compose up -d --force-recreate --no-deps web
+
+            # (Optional) Clean old dangling images/containers
+            docker system prune -f
+
+      - name: Summary
+        run: |
+          echo "Deployed to ${{ secrets.SSH_HOST }}:${{ secrets.SSH_PORT }} at ${{ secrets.TARGET_DIR }}"
